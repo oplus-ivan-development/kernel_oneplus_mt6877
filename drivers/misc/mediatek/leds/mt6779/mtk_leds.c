@@ -798,7 +798,6 @@ void mt_mt65xx_led_set(struct led_classdev *led_cdev, enum led_brightness level)
 
 			/* #ifndef OPLUS_BUG_STABILITY */
 			/*
-			Jianbin.Zhang@PSW.MultiMedia.Display.LCD.Machine, 2020/06/12,
 			modify for multibits backlight.
 			*/
 			/* disp_pq_notify_backlight_changed((((1 <<
@@ -811,7 +810,6 @@ void mt_mt65xx_led_set(struct led_classdev *led_cdev, enum led_brightness level)
 							   127) / 255);*/
 			/* #else */
 			/*
-			Yongpeng.Yi@PSW.MultiMedia.Display.LCD.Feature, 2018/09/10,
 			modify for silence mode.
 			*/
 			if (silence_mode) {

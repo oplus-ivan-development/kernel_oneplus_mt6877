@@ -1418,7 +1418,6 @@ void disp_aal_notify_backlight_changed(int bl_1024)
 	unsigned long flags;
 	/* #ifndef OPLUS_BUG_STABILITY */
 	/*
-	JianBin.Zhang@PSW.MultiMedia.Display.LCD.Machine, 2020/06/12,
 	modify for multibits backlight.
 	*/
 	/* int max_backlight; */
@@ -1431,7 +1430,6 @@ void disp_aal_notify_backlight_changed(int bl_1024)
 	disp_aal_exit_idle(__func__, 1);
 	/* #ifndef OPLUS_BUG_STABILITY */
 	/*
-	Jianbin.Zhang@PSW.MultiMedia.Display.LCD.Machine, 2020/06/12,
 	modify for multibits backlight.
 	*/
 	/* max_backlight = disp_pwm_get_max_backlight(DISP_PWM0);
@@ -1749,7 +1747,6 @@ int disp_aal_set_param(struct DISP_AAL_PARAM __user *param,
 
 	/* #ifdef OPLUS_BUG_STABILITY */
 	/*
-	Yongpeng.Yi@PSW.MultiMedia.Display.LCD.Machine, 2017/12/08,
 	modify for multibits backlight.
 	*/
 	if (backlight_value > LED_FULL) {

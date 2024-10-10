@@ -488,14 +488,19 @@ PMR_WriteBytes(PMR *psPMR,
                 address space. The caller does not need to call
                 PMRLockSysPhysAddresses before calling this function.
 
-@Input          psPMR           PMR to map.
+@Input          psPMR            PMR to map.
 
-@Input          pOSMMapData     OS specific data needed to create a mapping.
+@Input          pOSMMapData      OS specific data needed to create a mapping.
+
+@Input          uiCpuAccessFlags Flags to indicate if the mapping request
+                                 requires read, write or both access.
 
 @Return         PVRSRV_ERROR:   PVRSRV_OK on success or an error otherwise.
 */ /**************************************************************************/
 PVRSRV_ERROR
-PMRMMapPMR(PMR *psPMR, PMR_MMAP_DATA pOSMMapData);
+PMRMMapPMR(PMR *psPMR,
+           PMR_MMAP_DATA pOSMMapData,
+           PVRSRV_MEMALLOCFLAGS_T uiCpuAccessFlags);
 
 /*
  * PMRRefPMR()
@@ -1193,5 +1198,23 @@ PMRDeInit(void);
 PVRSRV_ERROR
 PMRStoreRIHandle(PMR *psPMR, void *hRIHandle);
 #endif
+
+/*
+ * PMRLockPMR()
+ *
+ * To be called when the PMR must not be modified by any other call-stack.
+ * Acquires the mutex on the passed in PMR.
+ */
+void
+PMRLockPMR(PMR *psPMR);
+
+/*
+ * PMRUnlockPMR()
+ *
+ * To be called when the PMR is no longer being modified.
+ * Releases the per-PMR mutex.
+ */
+void
+PMRUnlockPMR(PMR *psPMR);
 
 #endif /* #ifdef _SRVSRV_PMR_H_ */

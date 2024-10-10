@@ -140,7 +140,6 @@ int setMaxbrightness(int max_level, int enable)
 
 	/* #ifndef OPLUS_BUG_STABILITY */
 	/*
-	Jianbin.Zhang@PSW.MultiMedia.Display.LCD.Machine, 2020/06/12,
 		modify for multibits backlight.
 	*/
 	/* disp_bls_set_max_backlight(((((1 << LED_INTERNAL_LEVEL_BIT_CNT) -
@@ -367,7 +366,6 @@ int backlight_brightness_set(int level)
 
 	/* #ifndef OPLUS_BUG_STABILITY */
 	/*
-	Jianbin.Zhang@PSW.MultiMedia.Display.LCD.Machine, 2020/06/12,
 		modify for multibits backlight.
 	*/
 	/* if (level > ((1 << MT_LED_INTERNAL_LEVEL_BIT_CNT) - 1))
@@ -408,7 +406,6 @@ int backlight_brightness_set(int level)
 	} else {
 		/* #ifndef OPLUS_BUG_STABILITY */
 		/*
-		Jianbin.Zhang@PSW.MultiMedia.Display.LCD.Machine, 2020/06/12,
 			modify for multibits backlight.
 		*/
 		/* return mt65xx_led_set_cust(&cust_led_list[MT65XX_LED_TYPE_LCD],

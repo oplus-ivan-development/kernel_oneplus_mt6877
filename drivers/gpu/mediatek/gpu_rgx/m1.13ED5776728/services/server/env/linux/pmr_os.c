@@ -396,6 +396,10 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 	IMG_BOOL bUseVMInsertPage = IMG_FALSE;
 	IMG_DEVMEM_SIZE_T uiPmrVirtualSize;
 
+	/* if writeable but not shared mapping is requested then fail */
+	PVR_RETURN_IF_INVALID_PARAM(((ps_vma->vm_flags & VM_WRITE) == 0) ||
+	                            ((ps_vma->vm_flags & VM_SHARED) != 0));
+
 	uiLength = ps_vma->vm_end - ps_vma->vm_start;
 
 	PMR_LogicalSize(psPMR, &uiPmrVirtualSize);
@@ -420,19 +424,24 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 		PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_BAD_MAPPING, e0);
 	}
 
+	/*
+	 * Take a reference on the PMR so that it can't be freed while mapped
+	 * into the user process.
+	 */
+	PMRRefPMR(psPMR);
+
 	eError = PMRLockSysPhysAddresses(psPMR);
 	if (eError != PVRSRV_OK)
 	{
-		goto e0;
+		goto ErrUnrefPMR;
 	}
 
-	if (((ps_vma->vm_flags & VM_WRITE) != 0) &&
-		((ps_vma->vm_flags & VM_SHARED) == 0))
-	{
-		eError = PVRSRV_ERROR_INVALID_PARAMS;
-		goto e1;
-	}
+	/* Increment mapping count of the PMR so that its layout cannot be
+	 * changed (if sparse).
+	 */
+	PMRLockPMR(psPMR);
 
+	PMRCpuMapCountIncr(psPMR);
 	sPageProt = vm_get_page_prot(ps_vma->vm_flags);
 
 	eError = DevmemCPUCacheMode(psDevNode,
@@ -440,7 +449,7 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 	                            &ui32CPUCacheFlags);
 	if (eError != PVRSRV_OK)
 	{
-		goto e0;
+		goto e1;
 	}
 
 	switch (ui32CPUCacheFlags)
@@ -486,7 +495,6 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 	ps_vma->vm_flags |= VM_DONTCOPY;
 
 #if defined(PMR_OS_USE_VM_INSERT_PAGE)
-
 	/* Is this mmap targeting non order-zero pages or does it use pfn mappings?
 	 * If yes, don't use vm_insert_page */
 	bUseVMInsertPage = (uiLog2PageSize == PAGE_SHIFT) && (PMR_GetType(psPMR) != PMR_TYPE_EXTMEM);
@@ -640,22 +648,12 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 	/* Install open and close handlers for ref-counting */
 	ps_vma->vm_ops = &gsMMapOps;
 
-	/*
-	 * Take a reference on the PMR so that it can't be freed while mapped
-	 * into the user process.
-	 */
-	PMRRefPMR(psPMR);
-
 #if defined(PVRSRV_ENABLE_LINUX_MMAP_STATS)
 	/* record the stats */
 	MMapStatsAddOrUpdatePMR(psPMR, uiLength);
 #endif
 
-	/* Increment mapping count of the PMR so that its layout cannot be
-	 * changed (if sparse).
-	 */
-	PMRCpuMapCountIncr(psPMR);
-
+	PMRUnlockPMR(psPMR);
 	return PVRSRV_OK;
 
 	/* Error exit paths follow */
@@ -670,7 +668,11 @@ e2:
 		OSFreeMem(psCpuPAddr);
 	}
 e1:
+	PMRCpuMapCountDecr(psPMR);
+	PMRUnlockPMR(psPMR);
 	PMRUnlockSysPhysAddresses(psPMR);
+ErrUnrefPMR:
+	PMRUnrefPMR(psPMR);
 e0:
 	return eError;
 }
