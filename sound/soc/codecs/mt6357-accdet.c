@@ -549,28 +549,6 @@ static int accdet_create_attr(struct device_driver *driver)
 	return err;
 }
 
-/* get plug-in Resister for audio call */
-int accdet_read_audio_res(unsigned int res_value)
-{
-	pr_info("%s() resister value: R=%u(ohm)\n", __func__, res_value);
-
-	/* if res < 5k ohm normal device;  res >= 5k ohm, lineout device */
-	if (res_value < 5000)
-		return RET_LT_5K;
-
-	mutex_lock(&accdet->res_lock);
-	if (accdet->eint_sync_flag) {
-		accdet->cable_type = LINE_OUT_DEVICE;
-		accdet->accdet_status = LINE_OUT;
-		send_status_event(accdet->cable_type, 1);
-		pr_info("%s() update state:%d\n", __func__, accdet->cable_type);
-	}
-	mutex_unlock(&accdet->res_lock);
-
-	return RET_GT_5K;
-}
-EXPORT_SYMBOL(accdet_read_audio_res);
-
 static u64 accdet_get_current_time(void)
 {
 	return sched_clock();
@@ -1977,20 +1955,6 @@ static inline void accdet_init(void)
 	accdet_set_debounce(accdet_auxadc, cust_pwm_deb->debounce4);
 
 }
-
-/* late init for DC trim, and this API  Will be called by audio */
-void accdet_late_init(unsigned long data)
-{
-	pr_info("%s()  now init accdet!\n", __func__);
-	if (atomic_cmpxchg(&accdet_first, 1, 0)) {
-		del_timer_sync(&accdet_init_timer);
-		accdet_init();
-		accdet_init_debounce();
-		accdet_init_once();
-	} else
-		pr_info("%s inited dts fail\n", __func__);
-}
-EXPORT_SYMBOL(accdet_late_init);
 
 static void delay_init_work_callback(struct work_struct *work)
 {
