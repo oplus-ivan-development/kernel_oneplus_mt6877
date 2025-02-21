@@ -35,7 +35,7 @@ echo Trying to restart script
 fi
 fi
 
-make O=out ARCH=arm64 k6877v1_64_k419_defconfig
+make O=out ARCH=arm64 ivan_defconfig
 
 PATH="${PWD}/clang/bin:${PATH}:${PWD}/los-4.9-32/bin:${PATH}:${PWD}/los-4.9-64/bin:${PATH}" \
 make -j$(nproc --all)   O=out \
@@ -55,15 +55,15 @@ make -j$(nproc --all)   O=out \
 
 function zupload()
 {
-zimage=out/arch/arm64/boot/Image.gz-dtb
+zimage=out/arch/arm64/boot/Image.gz
 if ! [ -a $zimage ];
 then
 echo  " Failed to compile zImage, fix the errors first "
 else
 echo -e " Build succesful, generating flashable zip now "
 rm -rf AnyKernel
-git clone --depth=1 https://github.com/notganesh/AnyKernel3  AnyKernel
-cp out/arch/arm64/boot/Image.gz-dtb AnyKernel
+git clone --depth=1 https://github.com/Notganesh/AnyKernel3.git AnyKernel
+cp out/arch/arm64/boot/Image.gz AnyKernel
 cd AnyKernel
 zip -r9 ORIGIN-OSS-KERNEL-MT6877.zip *
 #curl --upload-file ORIGIN-OSS-KERNEL-MT6877.zip https://transfer.sh/
